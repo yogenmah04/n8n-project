@@ -43,7 +43,20 @@
         -256
       ],
       "id": "f80606f9-1985-4bd2-a414-4b45d7cea465",
-      "name": "HTTP Request"
+      "name": "get firebase token"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Step 1: Define your variables\nconst projectId = 'fonepoints-customer-app';\nconst accessToken = $input.first().json.token;\nconst kafkaPaylod = JSON.parse($('Kafka Trigger').first().json.message);\nconst messageBody = {\n  message: {\n    token: kafkaPaylod.fcmTokenId,\n    notification:{\n      \"title\":kafkaPaylod.title,\n      \"body\" : kafkaPaylod.message\n    }\n      ,\n    data: kafkaPaylod.data\n  }\n};\n\n// Step 2: Return the data in the required n8n format\nreturn [\n  {\n    json: {\n      projectId: projectId,\n      accessToken: accessToken,\n      message: messageBody\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -256
+      ],
+      "id": "03813ec0-440b-4c45-a109-85a454647652",
+      "name": "format payload push notification"
     },
     {
       "parameters": {
@@ -63,26 +76,13 @@
         -272
       ],
       "id": "a06fc0e0-1663-46cc-aa54-c9e230a79209",
-      "name": "HTTP Request1",
+      "name": "Push to firebase",
       "credentials": {
         "httpBearerAuth": {
           "id": "Zc8SGtj2n58bQf2K",
           "name": "Bearer Auth account"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "// Step 1: Define your variables\nconst projectId = 'fonepoints-customer-app';\nconst accessToken = $input.first().json.token;\nconst kafkaPaylod = JSON.parse($('Kafka Trigger').first().json.message);\nconst messageBody = {\n  message: {\n    token: kafkaPaylod.fcmTokenId,\n    notification:{\n      \"title\":kafkaPaylod.title,\n      \"body\" : kafkaPaylod.message\n    }\n      ,\n    data: kafkaPaylod.data\n  }\n};\n\n// Step 2: Return the data in the required n8n format\nreturn [\n  {\n    json: {\n      projectId: projectId,\n      accessToken: accessToken,\n      message: messageBody\n    }\n  }\n];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        704,
-        -256
-      ],
-      "id": "03813ec0-440b-4c45-a109-85a454647652",
-      "name": "Code in JavaScript"
     }
   ],
   "pinData": {},
@@ -91,38 +91,38 @@
       "main": [
         [
           {
-            "node": "HTTP Request",
+            "node": "get firebase token",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request": {
+    "get firebase token": {
       "main": [
         [
           {
-            "node": "Code in JavaScript",
+            "node": "format payload push notification",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "HTTP Request1": {
+    "format payload push notification": {
+      "main": [
+        [
+          {
+            "node": "Push to firebase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to firebase": {
       "main": [
         []
-      ]
-    },
-    "Code in JavaScript": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request1",
-            "type": "main",
-            "index": 0
-          }
-        ]
       ]
     }
   },
@@ -130,7 +130,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "cee745eb-53ca-4a1b-b4c7-08c32a8566af",
+  "versionId": "6270890b-4ba3-4e40-a98e-76f813f80a7b",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1625cbea73d5673da4aa4c7329c6cabd45e19db10237d6c2eae7a9770a81e3fe"
