@@ -1,0 +1,97 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "topics": "app.logs",
+        "group": "n8n-log-monitor",
+        "options": {}
+      },
+      "name": "Kafka Trigger",
+      "type": "n8n-nodes-base.kafkaTrigger",
+      "typeVersion": 1,
+      "position": [200, 300],
+      "credentials": {
+        "kafka": {
+          "id": "your-kafka-credential-id"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o-mini",
+        "prompt": "You are an expert PHP backend developer. Analyze the following log and determine if it indicates a bug or anomaly. If yes, summarize the issue in one line with the suspected cause. Log:\n\n{{$json[\"message\"]}}"
+      },
+      "name": "AI Bug Detector",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "your-openai-credential-id"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json[\"data\"][\"text\"]}}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      },
+      "name": "Bug Found?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [800, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://hooks.slack.com/services/XXXXX/YYYYY/ZZZZZ",
+        "options": {},
+        "body": "🚨 *AI Bug Detector Alert*\n*Service:* {{$json[\"service\"]}}\n*Detected Issue:* {{$json[\"data\"][\"text\"]}}\n*Log:* {{$json[\"message\"]}}"
+      },
+      "name": "Send Slack Alert",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [1100, 280]
+    }
+  ],
+  "connections": {
+    "Kafka Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Bug Detector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Bug Detector": {
+      "main": [
+        [
+          {
+            "node": "Bug Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bug Found?": {
+      "main": [
+        [
+          {
+            "node": "Send Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

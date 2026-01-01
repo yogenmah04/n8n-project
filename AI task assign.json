@@ -1,0 +1,314 @@
+{
+  "name": "AI task assign",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0a873514-08c4-42a7-818a-cee2cb255f7a",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -624,
+        -256
+      ],
+      "id": "9d244bb1-5bcb-40bd-9438-1b7692ea6e4f",
+      "name": "Webhook",
+      "webhookId": "0a873514-08c4-42a7-818a-cee2cb255f7a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an AI sprint planning assistant specializing in optimal resource allocation for Jira tickets. Your goal is to assign tickets to team members based on multiple constraints and optimization criteria.\n\n## **INPUT DATA:**\n\n2. **Tickets list and team memberlist :**\n{{ $json.result }}\n\n2. **Team Members:**\n3. **Sprint Constraints:**\n- Sprint duration: 10 working days\n- Daily working hours: 7 hours\n- Total sprint capacity per member = workableHour (capped at 70 hours maximum)\n\n## **OPTIMIZATION OBJECTIVES:**\n1. **Primary Objectives:**\n- Assign tickets to maximize team utilization (80-90% ideal)\n- Balance workload across team members\n- Respect each member's workableHour limit\n- Match ticket priority with member expertise/working level\n- Ensure no single member is overloaded\n\n2. **Secondary Objectives:**\n- High priority tickets assigned first\n- Consider story points as effort indicators\n- Maintain dependency-free parallel execution\n- Allow for some buffer time (15-20% of total capacity)\n\n3. **Assignment Rules:**\n- Developers handle (Coding, test case review and code review) tasks only\n- QA handles (test case prepration and test case execution) tasks only\n- Higher working level members get more complex/higher priority tickets\n- Distribute work to minimize bottlenecks\n\n## **REQUIRED OUTPUT FORMAT:**\nGenerate a Jira-compatible assignment plan with:\n\n1. **Summary Dashboard:**\n- Total sprint capacity per member\n- Assigned workload per member (in hours)\n- Utilization percentage per member\n- Ticket-wise assignment breakdown\n\n2. **Jira Payload Structure** following this template:\n\n{\n\"issueUpdates\": [\n{\n\"fields\": {\n\"project\": {\"id\": \"16003\"},\n\"summary\": \"Task Description\",\n\"issuetype\": {\"id\": \"10000\"},\n\"parent\": {\"id\": \"ticketId\"},\n\"assignee\": {\"name\": \"team.member\"},\n\"timetracking\": {\"originalEstimate\": \"Xm\"}\n}\n}\n]\n}\n\n3. **Task Breakdown Logic:**\nFor each ticket, consider typical subtasks:\n- each parent ticket havefollowing sub-tickets names( Coding, Code review, Test case prepration and Test Execution)\n- Development work (for Developers) named as (Coding)\n- Code Review (for Senior Developers or any Developers)\n- Test Case Prepration (for QA)\n- Test Case Execution (for QA)\n- If one developer assign that ticket then other developer need to review(code review)\n- Test case review need to review by all member who are assigned\n- Estimation based on: story points × complexity factor × member working level\n\n4. **Estimation Formula:**\nBase hours = (Story Points × 4 hours) × (1 / Workinglevel factor)\nWhere:\n- Workinglevel factor: 3=1.0, 5=1.2 (efficiency multiplier)\n- Adjust for priority: High=×1.2, Low=×0.8\n\n## **CONSTRAINTS TO VALIDATE:**\n1. No member exceeds their workableHour\n2. Total assigned hours ≤ Total sprint capacity\n3. At least 10% buffer time maintained\n4. High priority tickets assigned to highest available working level\n5. Equal distribution of similar-priority tickets\n\n## **DECISION PROCESS:**\n1. Calculate each member's available capacity\n2. Sort tickets by priority (High first)\n3. For each ticket:\na. Determine required roles (Dev/QA)\nb. Find available members for each role\nc. Assign to member with:\n   - Highest working level for high priority\n   - Most available capacity for balanced load\nd. Update member's remaining capacity\n\nGenerate the optimal assignment plan with the Jira payload for immediate use.\n  \n  ",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        352,
+        -208
+      ],
+      "id": "89fa9c23-9dea-46c2-8671-22719dd9674f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Assuming the incoming data is in `items[0].json.issues` array\nconst issues = $input.first().json.issues;\n\n// Create a map to store ticket information\nconst ticketMap = {};\n\n// First pass: Extract basic ticket information\nfor (const issue of issues) {\n  const key = issue.key;\n  const fields = issue.fields;\n\n  // Extract priority name safely\n  const priority = fields.priority ? fields.priority.name : \"N/A\";\n  \n  // Extract story points - customfield_11901 might be the story points field\n  const storyPoint = fields.customfield_11901 ? \n                     String(fields.customfield_11901) : \"0\";\n\n  // Initialize ticket object\n  ticketMap[key] = {\n    ticketId: key,\n    priority: priority,\n    storyPoint: storyPoint,\n    blocksBy: []\n  };\n}\n\n// Second pass: Process blocking relationships from issuelinks\nfor (const issue of issues) {\n  const key = issue.key;\n  const fields = issue.fields;\n  \n  // Get issue links if they exist\n  const links = fields.issuelinks || [];\n  \n  for (const link of links) {\n    // Check if this is a \"Blocks\" relationship\n    // Looking at your example, you want links where this ticket is blocked by another\n    if (link.type && link.type.name === \"Blocks\") {\n      // Check inwardIssue (this ticket is blocked by inwardIssue)\n      if (link.inwardIssue) {\n        const blockerKey = link.inwardIssue.key;\n        // Make sure the blocking ticket exists in our map\n        if (ticketMap[blockerKey]) {\n          // Add the blocker to this ticket's blocksBy array\n          ticketMap[key].blocksBy.push({\n            ticket: blockerKey,\n            priority: ticketMap[blockerKey].priority,\n            storyPoint: ticketMap[blockerKey].storyPoint\n          });\n        }\n      }\n      \n      // Also check outwardIssue (this ticket blocks outwardIssue)\n      if (link.outwardIssue) {\n        const blockedKey = link.outwardIssue.key;\n        // If this ticket blocks another, the other ticket should have this in blocksBy\n        if (ticketMap[blockedKey]) {\n          // The blocked ticket is blocked by this ticket\n          ticketMap[blockedKey].blocksBy.push({\n            ticket: key,\n            priority: ticketMap[key].priority,\n            storyPoint: ticketMap[key].storyPoint\n          });\n        }\n      }\n    }\n  }\n}\n\n// Convert to array format\nconst ticketsArray = Object.values(ticketMap);\n\n// Create the final output structure\nconst output = {\n  tickets: ticketsArray\n};\n\n// Return in n8n format\nreturn [{ json: output }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        -352
+      ],
+      "id": "4a4392d0-7650-4cc5-b465-f8de8e4d2c6a",
+      "name": "AI ticket format"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://scrum.f1soft.com/rest/api/2/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"jql\": \"issuekey in {{ $json.ticketsString }}\",\n  \"fields\": [\"summary\", \"priority\", \"customfield_11901\",\"issuelinks\"]\n} ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -288,
+        -352
+      ],
+      "id": "dc0c40cf-6a2f-4d3b-bc67-f393f78226f0",
+      "name": "Fetch tickets Info from jira",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "SkgQIG2IzNCbbmpl",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the ticket IDs array from the webhook body\nconst ticketIds = $input.first().json.body.ticktesId;\n\n// Convert the array to the desired string format: (item1,item2,item3)\nconst ticketString = '(' + ticketIds.join(',') + ')';\n\n// Return it as a single item (you can name the field whatever you need)\nreturn [\n  {\n    json: {\n      ticketsString: ticketString,\n      // Optional: also keep the original array if needed later\n      // ticketsArray: ticketIds\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -464,
+        -352
+      ],
+      "id": "4fd671cf-3b66-44ea-8c50-1f293164ef8e",
+      "name": "Extract ticket json"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Access the team members from the webhook body\nconst body = $input.first().json.body;\nconst teamMembers = body.teamMembers;\n\n// Return the members in the desired format\nreturn [{ \n  json: { \n    members: teamMembers \n  } \n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        -128
+      ],
+      "id": "28bb1c47-b34d-45f5-83c9-a5a3e492155d",
+      "name": "Extract Team member json"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        32,
+        -208
+      ],
+      "id": "adf73341-0197-4a66-902a-4bfed436cb8d",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        352,
+        -32
+      ],
+      "id": "8ee71206-f643-47ef-b12a-1256c4330be7",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "S4EgVWuAQV8LbaEx",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  const text = item.json.output || item.json.text || JSON.stringify(item.json);\n  \n  // Regex to match the JSON code block with \"issueUpdates\"\n  const regex = /```json\\s*{\\s*\"issueUpdates\"[\\s\\S]*?}\\s*```/;\n  const match = text.match(regex);\n  \n  if (match) {\n    // Extract and clean the block (remove ```json and ``` markers)\n    const jsonWithMarkers = match[0];\n    let jsonString = jsonWithMarkers\n      .replace(/^```json\\s*/, '')\n      .replace(/\\s*```$/, '')\n      .trim();\n\n    // Remove C-style comments and trailing commas (optional cleanup)\n    jsonString = jsonString.replace(/\\/\\*[\\s\\S]*?\\*\\//g, \"\");\n    jsonString = jsonString.replace(/,\\s*([}\\]])/g, \"$1\").trim();\n\n    // ✅ Return as string (not JSON)\n    items.push({\n      json: {\n        result: jsonString  // raw string form\n      }\n    });\n\n  } else {\n    items.push({\n      json: {\n        error: \"No JSON code block with 'issueUpdates' found\"\n      }\n    });\n  }\n}\n\nreturn items;\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        -208
+      ],
+      "id": "d9ac2b30-550f-4262-bc19-af0bbe564a93",
+      "name": "AI ticket format1",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://scrum.f1soft.com/rest/api/2/issue/bulk",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.result }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        928,
+        -208
+      ],
+      "id": "eef22f7c-b6a9-4743-aec8-4415f8fb81f2",
+      "name": "update tickets",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "SkgQIG2IzNCbbmpl",
+          "name": "Unnamed credential 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "console.log('aaaa',$input.all())\n\n// Get the first item which contains tickets\nconst ticketsData = $input.all()[0].json.tickets\n// Get the second item which contains members\nconst membersData = $input.all()[1].json.members\n\nconsole.log('asdsad',membersData)\nconsole.log(\"dddd\",ticketsData)\n\n// Convert to JSON strings\nconst ticketsJson = JSON.stringify(ticketsData)\nconst membersJson = JSON.stringify(membersData)\n\n// Return as a single string in the format you want\nreturn {\n  json: {\n    result: `tickets: ${ticketsJson} and members: ${membersJson}`\n  }\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        -208
+      ],
+      "id": "85772a60-9bbe-4d15-af76-ef4f1b11df30",
+      "name": "AI ticket format2"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract ticket json",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Extract Team member json",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch tickets Info from jira": {
+      "main": [
+        [
+          {
+            "node": "AI ticket format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract ticket json": {
+      "main": [
+        [
+          {
+            "node": "Fetch tickets Info from jira",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Team member json": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "AI ticket format": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "AI ticket format2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "AI ticket format1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI ticket format1": {
+      "main": [
+        [
+          {
+            "node": "update tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI ticket format2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d7c7902f-9801-49e0-9982-f7a3cea9f89a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1625cbea73d5673da4aa4c7329c6cabd45e19db10237d6c2eae7a9770a81e3fe"
+  },
+  "id": "HeYsTuI0SjFOK62A",
+  "tags": []
+}

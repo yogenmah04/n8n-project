@@ -1,0 +1,140 @@
+{
+  "name": "kafka consumer google FCM",
+  "nodes": [
+    {
+      "parameters": {
+        "topic": "n8n-fcm",
+        "groupId": "n8n-fcm-group",
+        "options": {
+          "autoCommitInterval": 3,
+          "heartbeatInterval": 3000,
+          "sessionTimeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.kafkaTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        -256
+      ],
+      "id": "7f8ea3a5-4d63-4426-9d96-416356d7c2d4",
+      "name": "Kafka Trigger",
+      "executeOnce": false,
+      "credentials": {
+        "kafka": {
+          "id": "DWxreUeMEnjFzGhB",
+          "name": "Kafka account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://script.google.com/macros/s/AKfycbwieiJl4wPhQkrrbrEcLgnu9gKS-yzFxbgABGvyEdMiqVoyhG23ZAWmEqPpQcbxJydd/exec",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n    \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQC6pN2s4QlkDpXW\\n4dabHVwzDbCccT6jU+pVygGVbARvmHFR3ldvbZhW8WyUMF7dWQj94j+uKccOJQg+\\n6U9nMmzKg5WteOBX4kINTY+An/Hv7NpyvZDFOFTDjhrArOByjRAq8jKhwTWlGg4g\\nBuadPsPKbEdMzagX5u7zNlqNwg7BO3DLhgbzt+mh79F5sctnb9CR23rB4IEEFOsH\\nK1n5LqFHGEVrfG8aM/zVmEGxTwsBjaVsJIJImQm6czKGrtYuQBd3OMCpi6JqNnDJ\\nM/Go5K7WvlOhfNW54RC2llH98NHt3MtuPT47drDQgIdK1EcRLnF/7ivfbephiQe7\\ngn0DYImJAgMBAAECggEANUXth/TLi2WmWykm6itdL61OpbilGlVPY6E/BnlIYtnu\\nLmH6LvHnM5nBViLgUOmi6WR0rK98A4uKaPqLEXeRGdSpGlSQJEWOeOGUfjApDERc\\nrbdx5PkJKLAc7rXpcojU/o0W6piNSUzAj1+o32UU2WhCiaeBvSDLP1xaSHAFah2i\\nQ+qNHYv9z1XK+zrDq986I4j2DtFO5A3YEY9t2P5ullAnt7uuyt+LOiN8RkyGhsD9\\nF8brbUnRHMYVyEi4JOv2DCiLr/fNHpSzLWQEhipokj7YR2wcF6m/ijUN9lNio2ig\\nyczS4+aGJyXp7XROuHEDz7rTqb3Gss2U6gGeaEZ2SQKBgQDmm7UN8MXJFSAehDgy\\nCCq9UvyCuZcJQYDRVn+1R3VpRkgR5txwqBO5GD1jqdPA0L20PyvIEoWA36am1BcT\\nLSfF/b4Ax3bTzsjXi1YT1+yAevrZlxLoyWKZxMTyKuSIEn811VOL6jqn2jAFfGQP\\nK0rPUFjDY5AqIZ3EwKH2vYq9wwKBgQDPMemlqnDH9ay29+obySfQx1PEHODqO+BT\\nnXaGR4VGR9SiiTRBQCRlcAW899eEuDIDnPkfGPbKJ0/IEqFj8zds+wuSMa7O5yp2\\nCpyrj5FPqO4dB9zq1cE7r+2QY4xC+dbjtT8/n5P6GrCCas4ZH3QtADkmLws1QJl0\\nMtDc2TAqwwKBgQC0p/SNqDp5zcfswC352/YHfRR+IIAW6y7MUBQZ4pIzV7Cr/Yxh\\n4PoafcfR5MAThDOpGfflc8UMcajvdqVhC3XmIGMR3zDSu2MRoIFdaEFJYY5UmYph\\nvSo2RjT3dey0QLFRbf5WVLeAuWf3VDxaudKQWGRBJSVSLCWZdkMrtc8T2wKBgQCY\\ns0RrYA32kM1Vm6jiCYJakEzgABiTCMXvWeF8XUGP5miD0XK9lDQ+viy8dDxWCBp0\\nJ0BC9vcLTaWy4mgnbZyvqOWCPTOEMUJN9Mw6dHi3qNy0cJMUT601/Batj3BT/CWv\\ndGjEzysT7I+hzm1Ofqv0bnGv/oPYH1/5D2p3GWoyWQKBgQCeswKUVYpfAQLTfhQk\\ndlQdmVTJULMyMsKTRJxJATJnh2Kh0ZdXttG85Tk60wrDLgE5mp9bIRCfKkfNkXmr\\n2P7W6GejDPpesFUvMzMJFyrRo7Z/ekKVPM8KXinqpY2doriVw0dDQ31YCG4TBHiF\\nsZfngBoHhDZBzYe3BAmjkNNuCg==\\n-----END PRIVATE KEY-----\\n\",\n    \"client_email\":\"firebase-adminsdk-bzw48@fonepoints-customer-app.iam.gserviceaccount.com\"\n\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        448,
+        -256
+      ],
+      "id": "f80606f9-1985-4bd2-a414-4b45d7cea465",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://fcm.googleapis.com/v1/projects/{{ $json.projectId }}/messages:send ",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.message) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        960,
+        -272
+      ],
+      "id": "a06fc0e0-1663-46cc-aa54-c9e230a79209",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "Zc8SGtj2n58bQf2K",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Step 1: Define your variables\nconst projectId = 'fonepoints-customer-app';\nconst accessToken = $input.first().json.token;\nconst kafkaPaylod = JSON.parse($('Kafka Trigger').first().json.message);\nconst messageBody = {\n  message: {\n    token: kafkaPaylod.fcmTokenId,\n    notification:{\n      \"title\":kafkaPaylod.title,\n      \"body\" : kafkaPaylod.message\n    }\n      ,\n    data: kafkaPaylod.data\n  }\n};\n\n// Step 2: Return the data in the required n8n format\nreturn [\n  {\n    json: {\n      projectId: projectId,\n      accessToken: accessToken,\n      message: messageBody\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        -256
+      ],
+      "id": "03813ec0-440b-4c45-a109-85a454647652",
+      "name": "Code in JavaScript"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Kafka Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cee745eb-53ca-4a1b-b4c7-08c32a8566af",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1625cbea73d5673da4aa4c7329c6cabd45e19db10237d6c2eae7a9770a81e3fe"
+  },
+  "id": "Di6xlBSGA3ED7iDd",
+  "tags": []
+}
