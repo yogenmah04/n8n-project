@@ -32,8 +32,8 @@
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        960,
-        -112
+        480,
+        -48
       ],
       "id": "89fa9c23-9dea-46c2-8671-22719dd9674f",
       "name": "AI Agent",
@@ -195,26 +195,6 @@
     },
     {
       "parameters": {
-        "model": "z-ai/glm-4.7",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        608,
-        144
-      ],
-      "id": "187129b0-fbba-4d7c-ac7a-487313994068",
-      "name": "OpenRouter Chat Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "TNdgZWGICWCGHvXn",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
         "model": "groq/compound-mini",
         "options": {}
       },
@@ -230,25 +210,6 @@
         "groqApi": {
           "id": "s7LmzJdAnpkLFkG9",
           "name": "Groq account 2"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        432,
-        160
-      ],
-      "id": "952cf088-cf4a-446a-87e0-8fe8db840e06",
-      "name": "OpenRouter Chat Model1",
-      "credentials": {
-        "openRouterApi": {
-          "id": "TNdgZWGICWCGHvXn",
-          "name": "OpenRouter account"
         }
       }
     },
@@ -290,7 +251,7 @@
     },
     {
       "parameters": {
-        "jsCode": "return {\n  json: {\n    system_instruction: {\n      parts: [\n        {\n          text: [\n            \"You are an AI Scrum Master and Sprint Planning Assistant with expertise in Agile methodologies, Jira workflows, sprint capacity management, and workload optimization.\",\n            \"Your objective is to analyze tickets, optimize task assignments, and generate a Jira-compatible sprint plan that maximizes efficiency and balance across the team.\",\n            \"\",\n            \"INPUT DATA:\",\n            \"1. Tickets List\",\n            \"2. Team Members\",\n            \"3. Sprint Constraints:\",\n            \"- Sprint duration: 10 working days\",\n            \"- Daily working hours: 7 hours\",\n            \"- Maximum sprint capacity per member: 70 hours\",\n            \"- Target utilization: 80–90%\",\n            \"- Minimum buffer: 10–20%\",\n            \"\",\n            \"OPTIMIZATION OBJECTIVES:\",\n            \"- Maximize team utilization (80–90%)\",\n            \"- Balance workload evenly across members\",\n            \"- Respect each member’s workableHour limit\",\n            \"- Match ticket priority to member’s expertise (working level)\",\n            \"- Avoid overloading any single team member\",\n            \"- Prioritize High tickets first\",\n            \"- Respect story points as effort indicators\",\n            \"- Maintain dependency-free parallel execution\",\n            \"- Leave 10–20% capacity buffer\",\n            \"\",\n            \"ASSIGNMENT RULES:\",\n            \"- Developers handle: Coding, Code Review\",\n            \"- QA handles: Test Case Preparation, Test Case Execution\",\n            \"- Each parent ticket produces the following subtasks: Coding, Code Review, Test Case Preparation, Test Case Execution\",\n            \"- A developer who codes cannot review their own code.\",\n            \"- Test cases must be reviewed by all QAs assigned to that ticket.\",\n            \"- High working-level members handle higher-complexity tickets.\",\n            \"- Assignments must minimize idle time and prevent bottlenecks.\",\n            \"- Estimate time of ticket and assign member estimate time according to story point.\",\n            \"- Parent ticket should not exceed time above story point time valuation.\",\n            \"\",\n            \"ESTIMATION LOGIC:\",\n            \"- Base Hours = (Story Points × 4 hours) × (1 / WorkingLevelFactor)\",\n            \"- Priority Adjustment: High ×1.2 | Medium ×1.0 | Low ×0.8\",\n            \"- Final Estimation = Base Hours × Priority Factor\",\n            \"\",\n            \"CONSTRAINTS TO VALIDATE:\",\n            \"- No member exceeds workableHour\",\n            \"- Total assigned hours ≤ total sprint capacity\",\n            \"- Maintain at least 10% buffer\",\n            \"- High-priority tickets go to highest working level\",\n            \"- Distribute tickets evenly by workload and priority\",\n            \"\",\n            \"DECISION PROCESS:\",\n            \"- Calculate each member’s available capacity.\",\n            \"- Sort tickets by priority (High → Medium → Low).\",\n            \"- For each ticket:\",\n            \"  a. Determine required roles (Dev/QA).\",\n            \"  b. Select members with available capacity.\",\n            \"  c. Assign based on highest working level (for high-priority) or most free capacity (for balance).\",\n            \"  d. Deduct estimated hours from capacity.\",\n            \"  e. Add subtasks and estimates to Jira payload.\",\n            \"\",\n            \"OUTPUT FORMAT:\",\n            \"1. Summary Dashboard (per member):\",\n            \"{ \\\"member\\\": \\\"yogen.maharjan\\\", \\\"role\\\": \\\"Developer\\\", \\\"totalCapacity\\\": 70, \\\"assignedHours\\\": 63, \\\"utilization\\\": \\\"90%\\\", \\\"ticketsAssigned\\\": [\\\"BM-5885\\\", \\\"BM-5886\\\"] }\",\n            \"\",\n            \"2. Jira-Compatible Payload:\",\n            \"{ \\\"issueUpdates\\\": [ { \\\"fields\\\": { \\\"project\\\": {\\\"id\\\": \\\"16003\\\"}, \\\"summary\\\": \\\"BM-5885 - Coding\\\", \\\"issuetype\\\": {\\\"id\\\": \\\"10000\\\"}, \\\"parent\\\": {\\\"id\\\": \\\"BM-5885\\\"}, \\\"assignee\\\": {\\\"name\\\": \\\"yogen.maharjan\\\"}, \\\"timetracking\\\": {\\\"originalEstimate\\\": \\\"120m\\\"} } } ] }\",\n            \"\",\n            \"FINAL OUTPUT REQUIREMENTS:\",\n            \"- Return a single valid JSON object containing:\",\n            \"  - summaryDashboard\",\n            \"  - jiraPayload\",\n            \"- Do not include any text outside JSON.\",\n            \"- Ensure JSON is formatted, valid, and immediately usable in Jira REST API.\"\n          ].join(\"\\n\")\n        }\n      ]\n    },\n    contents: [\n      {\n        parts: [\n          {\n            text:\n              $input.first().json.result ||\n              \"tickets: [...] and members: [...] Generate the sprint plan.\"\n          }\n        ]\n      }\n    ],\n    generationConfig: {\n  maxOutputTokens: 8192,\n  temperature: 0.1,\n  responseMimeType: \"application/json\",\n  responseSchema: {\n    type: \"object\",\n    properties: {\n      issueUpdates: {\n        type: \"array\",\n        items: {\n          type: \"object\",\n          properties: {\n            fields: {\n              type: \"object\",\n              properties: {\n                project: {\n                  type: \"object\",\n                  properties: { id: { type: \"string\" } },\n                  required: [\"id\"]\n                },\n                summary: { type: \"string\" },\n                issuetype: {\n                  type: \"object\",\n                  properties: { name: { type: \"string\" } },\n                  required: [\"name\"]\n                },\n                parent: {\n                  type: \"object\",\n                  properties: { key: { type: \"string\" } },\n                  required: [\"key\"]\n                },\n                assignee: {\n                  type: \"object\",\n                  properties: { name: { type: \"string\" } },\n                  required: [\"name\"]\n                },\n                timetracking: {\n                  type: \"object\",\n                  properties: { originalEstimate: { type: \"string\" } },\n                  required: [\"originalEstimate\"]\n                }\n              },\n              required: [\n                \"project\",\n                \"summary\",\n                \"issuetype\",\n                \"parent\",\n                \"assignee\",\n                \"timetracking\"\n              ]\n            }\n          },\n          required: [\"fields\"]\n        }\n      }\n    },\n    required: [\"issueUpdates\"]\n  }\n}\n\n  }\n};\n"
+        "jsCode": "return {\n  json: {\n    system_instruction: {\n      parts: [\n        {\n          text: `Role: Senior AI Scrum Master. ProjectID=\"16003\", IssueType=\"Sub-task\". \nMath: Total Hours = StoryPoints * 7. \nSplit: Coding 45%, Test Execution 25%, Code Review 20%, Test Prep 10%. \nTIME: Convert to minutes (H*60), ROUND, append 'm'. \nCAPACITY & ATOMICITY RULES:\n1. ATOMICITY: Each subtask (e.g., Coding) MUST be assigned to exactly ONE member. Never split one subtask between two people.\n2. If a member's 'workableHour' is less than the required time for a specific subtask, skip that member and find another with enough time. \n3. If NO member has enough 'workableHour' for the \"Coding\" subtask, exclude that ticket and move to the next.\n4. Sort: Highest > High > Medium > Low.\nRules: Coding Assignee != Reviewer. Devs=Coding/Review. QAs=Prep/Execution. \nOutput: Valid JSON \"issueUpdates\" array only.`\n        }\n      ]\n    },\n    contents: [\n      {\n        parts: [{ text: $input.first().json.result }]\n      }\n    ],\n    generationConfig: {\n      maxOutputTokens: 8192,\n      temperature: 0,\n      responseMimeType: \"application/json\",\n      responseSchema: {\n        type: \"object\",\n        properties: {\n          issueUpdates: {\n            type: \"array\",\n            items: {\n              type: \"object\",\n              properties: {\n                fields: {\n                  type: \"object\",\n                  properties: {\n                    project: { type: \"object\", properties: { id: { type: \"string\" } } },\n                    summary: { type: \"string\" },\n                    issuetype: { type: \"object\", properties: { name: { type: \"string\" } } },\n                    parent: { type: \"object\", properties: { key: { type: \"string\" } } },\n                    assignee: { type: \"object\", properties: { name: { type: \"string\" } } },\n                    timetracking: { type: \"object\", properties: { originalEstimate: { type: \"string\" } } }\n                  },\n                  required: [\"project\", \"summary\", \"issuetype\", \"parent\", \"assignee\", \"timetracking\"]\n                }\n              }\n            }\n          }\n        },\n        required: [\"issueUpdates\"]\n      }\n    }\n  }\n};"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -303,7 +264,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Get the raw text from Gemini response\nconst geminiText = $node[\"gemini http call\"].json.candidates[0].content.parts[0].text;\n\n// Parse the JSON from Gemini\nconst payload = JSON.parse(geminiText);\n\n// Return the payload as-is (with issueUpdates wrapper)\nreturn [{ json: payload }];"
+        "jsCode": "// Get the raw text from Gemini response\nconst geminiText = $node[\"gemini http call\"].json.candidates[0].content.parts[0].text;\n\n// Parse the JSON from Gemini\nconst payload = JSON.parse(geminiText);\n\n// Return the payload as-is (with issueUpdates wrapper)\nreturn payload;"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -432,16 +393,6 @@
         []
       ]
     },
-    "OpenRouter Chat Model": {
-      "ai_languageModel": [
-        []
-      ]
-    },
-    "OpenRouter Chat Model1": {
-      "ai_languageModel": [
-        []
-      ]
-    },
     "code format": {
       "main": [
         [
@@ -480,7 +431,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "7a51cee1-52c5-4817-900a-c5e5f99cd2fc",
+  "versionId": "2672fd40-ecb3-4ab8-ba29-d286f53d46f5",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1625cbea73d5673da4aa4c7329c6cabd45e19db10237d6c2eae7a9770a81e3fe"
