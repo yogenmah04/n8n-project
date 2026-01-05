@@ -21,17 +21,23 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are an AI sprint planning assistant specializing in optimal resource allocation for Jira tickets. Your goal is to assign tickets to team members based on multiple constraints and optimization criteria.\n\n## **INPUT DATA:**\n\n2. **Tickets list and team memberlist :**\n{{ $json.result }}\n\n2. **Team Members:**\n3. **Sprint Constraints:**\n- Sprint duration: 10 working days\n- Daily working hours: 7 hours\n- Total sprint capacity per member = workableHour (capped at 70 hours maximum)\n\n## **OPTIMIZATION OBJECTIVES:**\n1. **Primary Objectives:**\n- Assign tickets to maximize team utilization (80-90% ideal)\n- Balance workload across team members\n- Respect each member's workableHour limit\n- Match ticket priority with member expertise/working level\n- Ensure no single member is overloaded\n\n2. **Secondary Objectives:**\n- High priority tickets assigned first\n- Consider story points as effort indicators\n- Maintain dependency-free parallel execution\n- Allow for some buffer time (15-20% of total capacity)\n\n3. **Assignment Rules:**\n- Developers handle (Coding, test case review and code review) tasks only\n- QA handles (test case prepration and test case execution) tasks only\n- Higher working level members get more complex/higher priority tickets\n- Distribute work to minimize bottlenecks\n\n## **REQUIRED OUTPUT FORMAT:**\nGenerate a Jira-compatible assignment plan with:\n\n1. **Summary Dashboard:**\n- Total sprint capacity per member\n- Assigned workload per member (in hours)\n- Utilization percentage per member\n- Ticket-wise assignment breakdown\n\n2. **Jira Payload Structure** following this template:\n\n{\n\"issueUpdates\": [\n{\n\"fields\": {\n\"project\": {\"id\": \"16003\"},\n\"summary\": \"Task Description\",\n\"issuetype\": {\"id\": \"10000\"},\n\"parent\": {\"id\": \"ticketId\"},\n\"assignee\": {\"name\": \"team.member\"},\n\"timetracking\": {\"originalEstimate\": \"Xm\"}\n}\n}\n]\n}\n\n3. **Task Breakdown Logic:**\nFor each ticket, consider typical subtasks:\n- each parent ticket havefollowing sub-tickets names( Coding, Code review, Test case prepration and Test Execution)\n- Development work (for Developers) named as (Coding)\n- Code Review (for Senior Developers or any Developers)\n- Test Case Prepration (for QA)\n- Test Case Execution (for QA)\n- If one developer assign that ticket then other developer need to review(code review)\n- Test case review need to review by all member who are assigned\n- Estimation based on: story points × complexity factor × member working level\n\n4. **Estimation Formula:**\nBase hours = (Story Points × 4 hours) × (1 / Workinglevel factor)\nWhere:\n- Workinglevel factor: 3=1.0, 5=1.2 (efficiency multiplier)\n- Adjust for priority: High=×1.2, Low=×0.8\n\n## **CONSTRAINTS TO VALIDATE:**\n1. No member exceeds their workableHour\n2. Total assigned hours ≤ Total sprint capacity\n3. At least 10% buffer time maintained\n4. High priority tickets assigned to highest available working level\n5. Equal distribution of similar-priority tickets\n\n## **DECISION PROCESS:**\n1. Calculate each member's available capacity\n2. Sort tickets by priority (High first)\n3. For each ticket:\na. Determine required roles (Dev/QA)\nb. Find available members for each role\nc. Assign to member with:\n   - Highest working level for high priority\n   - Most available capacity for balanced load\nd. Update member's remaining capacity\n\nGenerate the optimal assignment plan with the Jira payload for immediate use.\n  \n  ",
-        "options": {}
+        "text": "=**Tickets list and team memberlist :**\n{{ $json.result }}",
+        "options": {
+          "systemMessage": "You are an AI Scrum Master and Sprint Planning Assistant with expertise in Agile methodologies, Jira workflows, sprint capacity management, and workload optimization.\nYour objective is to analyze tickets, optimize task assignments, and generate a Jira-compatible sprint plan that maximizes efficiency and balance across the team.\n\nINPUT DATA:\n\t1. Tickets List\n\t2. Team Members\n\t3. Sprint Constraints\n\t\t- Sprint duration: 10 working days\n\t\t- Daily working hours: 7 hours\n\t\t- Maximum sprint capacity per member: 70 hours\n\t\t- Target utilization: 80–90%\n\t\t- Minimum buffer: 10–20%\n\nOPTIMIZATION OBJECTIVES\n\t- Primary Goals\n\t\t- Maximize team utilization (80–90%)\n\t\t- Balance workload evenly across members\n\t\t- Respect each member’s workableHour limit\n\t\t- Match ticket priority to member’s expertise (working level)\n\t\t- Avoid overloading any single team member\n\t- Secondary Goals\n\t\t- Prioritize High tickets first\n\t\t- Respect story points as effort indicators\n\t\t- Maintain dependency-free parallel execution\n\t\t- Leave 10–20% capacity buffer\n\nASSIGNMENT RULES\n\t- Developers handle:\n\t\tCoding, Code Review\n\t- QA handles:\n\t\tTest Case Preparation, Test Case Execution\n\t- Each parent ticket produces the following subtasks:\n\t\t* Coding, Code Review, Test Case Preparation, Test Case Execution\n\t- A developer who codes cannot review their own code.\n\t- Test cases must be reviewed by all QAs assigned to that ticket.\n\t- High working-level members handle higher-complexity tickets.\n\t- Assignments must minimize idle time and prevent bottlenecks.\n\t- Estimate time of ticket and assign member estimate time according to story point\n\t- Parent ticket should not exceed time above story point time valuation\n\n\t\nFINAL OUTPUT REQUIREMENTS\n\t- Return a single valid JSON object containing:\n\t- summaryDashboard\n\t- jiraPayload\n\t- Do not include any text outside JSON.\n\t- Ensure JSON is formatted, valid, and immediately usable in Jira REST API.",
+          "batching": {
+            "batchSize": 1
+          }
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3,
       "position": [
-        352,
-        -208
+        960,
+        -112
       ],
       "id": "89fa9c23-9dea-46c2-8671-22719dd9674f",
-      "name": "AI Agent"
+      "name": "AI Agent",
+      "alwaysOutputData": false
     },
     {
       "parameters": {
@@ -111,32 +117,38 @@
     },
     {
       "parameters": {
-        "options": {}
+        "modelName": "models/gemini-2.0-flash",
+        "options": {
+          "maxOutputTokens": 1000,
+          "temperature": 0.1,
+          "topK": 20,
+          "topP": 0.9
+        }
       },
       "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
       "typeVersion": 1,
       "position": [
-        352,
-        -32
+        208,
+        128
       ],
       "id": "8ee71206-f643-47ef-b12a-1256c4330be7",
       "name": "Google Gemini Chat Model",
       "credentials": {
         "googlePalmApi": {
-          "id": "S4EgVWuAQV8LbaEx",
-          "name": "Google Gemini(PaLM) Api account 2"
+          "id": "jI64NftTN6lN8N0W",
+          "name": "yogenmah10 free"
         }
       }
     },
     {
       "parameters": {
-        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  const text = item.json.output || item.json.text || JSON.stringify(item.json);\n  \n  // Regex to match the JSON code block with \"issueUpdates\"\n  const regex = /```json\\s*{\\s*\"issueUpdates\"[\\s\\S]*?}\\s*```/;\n  const match = text.match(regex);\n  \n  if (match) {\n    // Extract and clean the block (remove ```json and ``` markers)\n    const jsonWithMarkers = match[0];\n    let jsonString = jsonWithMarkers\n      .replace(/^```json\\s*/, '')\n      .replace(/\\s*```$/, '')\n      .trim();\n\n    // Remove C-style comments and trailing commas (optional cleanup)\n    jsonString = jsonString.replace(/\\/\\*[\\s\\S]*?\\*\\//g, \"\");\n    jsonString = jsonString.replace(/,\\s*([}\\]])/g, \"$1\").trim();\n\n    // ✅ Return as string (not JSON)\n    items.push({\n      json: {\n        result: jsonString  // raw string form\n      }\n    });\n\n  } else {\n    items.push({\n      json: {\n        error: \"No JSON code block with 'issueUpdates' found\"\n      }\n    });\n  }\n}\n\nreturn items;\n"
+        "jsCode": "const items = [];\n\nfor (const item of $input.all()) {\n  const text = item.json.output || item.json.text || JSON.stringify(item.json);\n\n  // Match JSON starting with {\"issueUpdates\":[ ... ]}\n  const regex = /{\\s*\"issueUpdates\"\\s*:\\s*\\[[\\s\\S]*?\\]\\s*}/;\n  const match = text.match(regex);\n\n  if (match) {\n    let jsonString = match[0];\n\n    try {\n      // Try to parse directly\n      const parsed = JSON.parse(jsonString);\n\n      // Reformat JSON properly\n      const formatted = JSON.stringify(parsed, null, 2);\n\n      items.push({\n        json: {\n          result: formatted\n        }\n      });\n    } catch (e) {\n      // If parsing fails, try to fix minor issues\n      let fixed = jsonString\n        .replace(/,\\s*([}\\]])/g, \"$1\") // remove trailing commas\n        .replace(/[\\r\\n\\t]/g, \" \")      // normalize whitespace\n        .replace(/\\s+/g, \" \");\n\n      try {\n        const parsed = JSON.parse(fixed);\n        const formatted = JSON.stringify(parsed, null, 2);\n        items.push({\n          json: {\n            result: formatted,\n            note: \"Fixed minor JSON issues automatically\"\n          }\n        });\n      } catch (e2) {\n        // If still invalid, return raw text\n        items.push({\n          json: {\n            error: \"Failed to parse JSON properly\",\n            raw: jsonString\n          }\n        });\n      }\n    }\n  } else {\n    items.push({\n      json: {\n        error: \"No JSON block starting with 'issueUpdates' found\"\n      }\n    });\n  }\n}\n\nreturn items;\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        720,
-        -208
+        928,
+        96
       ],
       "id": "d9ac2b30-550f-4262-bc19-af0bbe564a93",
       "name": "AI ticket format1",
@@ -150,14 +162,14 @@
         "genericAuthType": "httpBasicAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ $json.result }}",
+        "jsonBody": "={{ $json }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.3,
       "position": [
-        928,
-        -208
+        944,
+        -400
       ],
       "id": "eef22f7c-b6a9-4743-aec8-4415f8fb81f2",
       "name": "update tickets",
@@ -180,6 +192,128 @@
       ],
       "id": "85772a60-9bbe-4d15-af76-ef4f1b11df30",
       "name": "AI ticket format2"
+    },
+    {
+      "parameters": {
+        "model": "z-ai/glm-4.7",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        608,
+        144
+      ],
+      "id": "187129b0-fbba-4d7c-ac7a-487313994068",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "TNdgZWGICWCGHvXn",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "groq/compound-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        80
+      ],
+      "id": "5855e549-1d3f-47e3-8141-9bc17daab832",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "s7LmzJdAnpkLFkG9",
+          "name": "Groq account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        432,
+        160
+      ],
+      "id": "952cf088-cf4a-446a-87e0-8fe8db840e06",
+      "name": "OpenRouter Chat Model1",
+      "credentials": {
+        "openRouterApi": {
+          "id": "TNdgZWGICWCGHvXn",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "={{ $node[\"code format\"].json }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        496,
+        -272
+      ],
+      "id": "77980afe-bde0-454a-ac66-f91ddd49fef6",
+      "name": "gemini http call",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "A97fmQ9To1Lb6ADv",
+          "name": "gemini yogenmah10"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    system_instruction: {\n      parts: [\n        {\n          text: [\n            \"You are an AI Scrum Master and Sprint Planning Assistant with expertise in Agile methodologies, Jira workflows, sprint capacity management, and workload optimization.\",\n            \"Your objective is to analyze tickets, optimize task assignments, and generate a Jira-compatible sprint plan that maximizes efficiency and balance across the team.\",\n            \"\",\n            \"INPUT DATA:\",\n            \"1. Tickets List\",\n            \"2. Team Members\",\n            \"3. Sprint Constraints:\",\n            \"- Sprint duration: 10 working days\",\n            \"- Daily working hours: 7 hours\",\n            \"- Maximum sprint capacity per member: 70 hours\",\n            \"- Target utilization: 80–90%\",\n            \"- Minimum buffer: 10–20%\",\n            \"\",\n            \"OPTIMIZATION OBJECTIVES:\",\n            \"- Maximize team utilization (80–90%)\",\n            \"- Balance workload evenly across members\",\n            \"- Respect each member’s workableHour limit\",\n            \"- Match ticket priority to member’s expertise (working level)\",\n            \"- Avoid overloading any single team member\",\n            \"- Prioritize High tickets first\",\n            \"- Respect story points as effort indicators\",\n            \"- Maintain dependency-free parallel execution\",\n            \"- Leave 10–20% capacity buffer\",\n            \"\",\n            \"ASSIGNMENT RULES:\",\n            \"- Developers handle: Coding, Code Review\",\n            \"- QA handles: Test Case Preparation, Test Case Execution\",\n            \"- Each parent ticket produces the following subtasks: Coding, Code Review, Test Case Preparation, Test Case Execution\",\n            \"- A developer who codes cannot review their own code.\",\n            \"- Test cases must be reviewed by all QAs assigned to that ticket.\",\n            \"- High working-level members handle higher-complexity tickets.\",\n            \"- Assignments must minimize idle time and prevent bottlenecks.\",\n            \"- Estimate time of ticket and assign member estimate time according to story point.\",\n            \"- Parent ticket should not exceed time above story point time valuation.\",\n            \"\",\n            \"ESTIMATION LOGIC:\",\n            \"- Base Hours = (Story Points × 4 hours) × (1 / WorkingLevelFactor)\",\n            \"- Priority Adjustment: High ×1.2 | Medium ×1.0 | Low ×0.8\",\n            \"- Final Estimation = Base Hours × Priority Factor\",\n            \"\",\n            \"CONSTRAINTS TO VALIDATE:\",\n            \"- No member exceeds workableHour\",\n            \"- Total assigned hours ≤ total sprint capacity\",\n            \"- Maintain at least 10% buffer\",\n            \"- High-priority tickets go to highest working level\",\n            \"- Distribute tickets evenly by workload and priority\",\n            \"\",\n            \"DECISION PROCESS:\",\n            \"- Calculate each member’s available capacity.\",\n            \"- Sort tickets by priority (High → Medium → Low).\",\n            \"- For each ticket:\",\n            \"  a. Determine required roles (Dev/QA).\",\n            \"  b. Select members with available capacity.\",\n            \"  c. Assign based on highest working level (for high-priority) or most free capacity (for balance).\",\n            \"  d. Deduct estimated hours from capacity.\",\n            \"  e. Add subtasks and estimates to Jira payload.\",\n            \"\",\n            \"OUTPUT FORMAT:\",\n            \"1. Summary Dashboard (per member):\",\n            \"{ \\\"member\\\": \\\"yogen.maharjan\\\", \\\"role\\\": \\\"Developer\\\", \\\"totalCapacity\\\": 70, \\\"assignedHours\\\": 63, \\\"utilization\\\": \\\"90%\\\", \\\"ticketsAssigned\\\": [\\\"BM-5885\\\", \\\"BM-5886\\\"] }\",\n            \"\",\n            \"2. Jira-Compatible Payload:\",\n            \"{ \\\"issueUpdates\\\": [ { \\\"fields\\\": { \\\"project\\\": {\\\"id\\\": \\\"16003\\\"}, \\\"summary\\\": \\\"BM-5885 - Coding\\\", \\\"issuetype\\\": {\\\"id\\\": \\\"10000\\\"}, \\\"parent\\\": {\\\"id\\\": \\\"BM-5885\\\"}, \\\"assignee\\\": {\\\"name\\\": \\\"yogen.maharjan\\\"}, \\\"timetracking\\\": {\\\"originalEstimate\\\": \\\"120m\\\"} } } ] }\",\n            \"\",\n            \"FINAL OUTPUT REQUIREMENTS:\",\n            \"- Return a single valid JSON object containing:\",\n            \"  - summaryDashboard\",\n            \"  - jiraPayload\",\n            \"- Do not include any text outside JSON.\",\n            \"- Ensure JSON is formatted, valid, and immediately usable in Jira REST API.\"\n          ].join(\"\\n\")\n        }\n      ]\n    },\n    contents: [\n      {\n        parts: [\n          {\n            text:\n              $input.first().json.result ||\n              \"tickets: [...] and members: [...] Generate the sprint plan.\"\n          }\n        ]\n      }\n    ],\n    generationConfig: {\n  maxOutputTokens: 8192,\n  temperature: 0.1,\n  responseMimeType: \"application/json\",\n  responseSchema: {\n    type: \"object\",\n    properties: {\n      issueUpdates: {\n        type: \"array\",\n        items: {\n          type: \"object\",\n          properties: {\n            fields: {\n              type: \"object\",\n              properties: {\n                project: {\n                  type: \"object\",\n                  properties: { id: { type: \"string\" } },\n                  required: [\"id\"]\n                },\n                summary: { type: \"string\" },\n                issuetype: {\n                  type: \"object\",\n                  properties: { name: { type: \"string\" } },\n                  required: [\"name\"]\n                },\n                parent: {\n                  type: \"object\",\n                  properties: { key: { type: \"string\" } },\n                  required: [\"key\"]\n                },\n                assignee: {\n                  type: \"object\",\n                  properties: { name: { type: \"string\" } },\n                  required: [\"name\"]\n                },\n                timetracking: {\n                  type: \"object\",\n                  properties: { originalEstimate: { type: \"string\" } },\n                  required: [\"originalEstimate\"]\n                }\n              },\n              required: [\n                \"project\",\n                \"summary\",\n                \"issuetype\",\n                \"parent\",\n                \"assignee\",\n                \"timetracking\"\n              ]\n            }\n          },\n          required: [\"fields\"]\n        }\n      }\n    },\n    required: [\"issueUpdates\"]\n  }\n}\n\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        288,
+        -368
+      ],
+      "id": "7fbdbab4-c38b-4c64-809f-24aaaff28b78",
+      "name": "code format"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the raw text from Gemini response\nconst geminiText = $node[\"gemini http call\"].json.candidates[0].content.parts[0].text;\n\n// Parse the JSON from Gemini\nconst payload = JSON.parse(geminiText);\n\n// Return the payload as-is (with issueUpdates wrapper)\nreturn [{ json: payload }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -288
+      ],
+      "id": "fe08473f-c487-4bcc-98d1-1218d70b33e0",
+      "name": "jira payload format",
+      "notesInFlow": true
     }
   ],
   "pinData": {},
@@ -279,6 +413,59 @@
     },
     "AI ticket format1": {
       "main": [
+        []
+      ]
+    },
+    "AI ticket format2": {
+      "main": [
+        [
+          {
+            "node": "code format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "OpenRouter Chat Model1": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "code format": {
+      "main": [
+        [
+          {
+            "node": "gemini http call",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "gemini http call": {
+      "main": [
+        [
+          {
+            "node": "jira payload format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "jira payload format": {
+      "main": [
         [
           {
             "node": "update tickets",
@@ -287,24 +474,13 @@
           }
         ]
       ]
-    },
-    "AI ticket format2": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
-  "active": true,
+  "active": false,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "d7c7902f-9801-49e0-9982-f7a3cea9f89a",
+  "versionId": "7a51cee1-52c5-4817-900a-c5e5f99cd2fc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "1625cbea73d5673da4aa4c7329c6cabd45e19db10237d6c2eae7a9770a81e3fe"
